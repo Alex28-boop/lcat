@@ -56,6 +56,18 @@ h1 { margin: 0; font-size: 28px; }
 #clue {
   font-size: 18px;
   line-height: 1.35;
+  padding: 3px 5px;
+  margin: -3px -5px;
+  border-radius: 6px;
+}
+
+#clue.flash {
+  animation: clueFlash 0.6s ease-out;
+}
+
+@keyframes clueFlash {
+  0% { background-color: rgba(244, 185, 66, 0.55); }
+  100% { background-color: transparent; }
 }
 
 #attempt-info {
@@ -64,6 +76,23 @@ h1 { margin: 0; font-size: 28px; }
   color: #9fb4d1;
   min-height: 18px;
 }
+
+#clue-timer-bar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: #23344d;
+  overflow: hidden;
+}
+
+#clue-timer-fill {
+  height: 100%;
+  width: 0%;
+  background: #f4b942;
+  transition: width 1s linear;
+}
+
+#clue-timer-bar.hidden { display: none; }
 
 #try {
   flex: 0 0 auto;
@@ -119,6 +148,31 @@ h1 { margin: 0; font-size: 28px; }
   margin-top: 12px;
   font-size: 15px;
   color: #9fb4d1;
+}
+
+.best-score {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #f4b942;
+  font-weight: bold;
+}
+
+.round-breakdown {
+  margin-top: 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.round-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  color: #cdd8e8;
+  border-bottom: 1px solid #23344d;
+}
+
+.round-line:last-child {
+  border-bottom: none;
 }
 
 #next-round, .restart-btn {
