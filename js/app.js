@@ -63,6 +63,7 @@ let playerPosition = null;
 
 let currentRound = 0;
 let totalScore = 0;
+let roundScores = [];
 let attemptsUsed = 0;
 let seconds = 0;
 let shownClueIndex = 0;
@@ -104,6 +105,8 @@ function startRound() {
   document.getElementById("round-number").textContent = currentRound + 1;
   document.getElementById("clue-number").textContent = "1";
   document.getElementById("clue").textContent = treasures[currentRound].clues[0];
+  document.getElementById("clue-timer-bar").classList.remove("hidden");
+  document.getElementById("clue-timer-fill").style.width = "0%";
 
   const tryBtn = document.getElementById("try");
   tryBtn.disabled = true;
@@ -122,6 +125,7 @@ function tick() {
   seconds++;
   updateTimer();
   updateClueByTime();
+  updateClueProgressBar();
 
   if (seconds >= ROUND_DURATION) {
     finishRound(0, null, true);
@@ -139,7 +143,48 @@ function updateClueByTime() {
     shownClueIndex = nextIndex;
     document.getElementById("clue-number").textContent = shownClueIndex + 1;
     document.getElementById("clue").textContent = treasure.clues[shownClueIndex];
+
+    const clueEl = document.getElementById("clue");
+    clueEl.classList.remove("flash");
+    void clueEl.offsetWidth; // force le redémarrage de l'animation CSS
+    clueEl.classList.add("flash");
+
+    playClueBeep();
   }
+}
+
+function playClueBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    // Audio non disponible dans ce navigateur : on ignore silencieusement.
+  }
+}
+
+function updateClueProgressBar() {
+  const treasure = treasures[currentRound];
+  const bar = document.getElementById("clue-timer-bar");
+  const fill = document.getElementById("clue-timer-fill");
+  const isLastClue = shownClueIndex >= treasure.clues.length - 1;
+
+  if (isLastClue) {
+    // Plus aucun indice à venir : on masque la barre.
+    bar.classList.add("hidden");
+    return;
+  }
+
+  const intoInterval = seconds % CLUE_INTERVAL;
+  const progress = (intoInterval / CLUE_INTERVAL) * 100;
+  fill.style.width = progress + "%";
 }
 
 function updateTimer() {
@@ -157,8 +202,15 @@ function onMapClick(e) {
 
   if (playerMarker) {
     playerMarker.setLatLng(e.latlng);
+    playerMarker.setStyle({ fillColor: "#f4b942", color: "#ffffff" });
   } else {
-    playerMarker = L.marker(e.latlng).addTo(map);
+    playerMarker = L.circleMarker(e.latlng, {
+      radius: 9,
+      weight: 3,
+      color: "#ffffff",
+      fillColor: "#f4b942",
+      fillOpacity: 0.9
+    }).addTo(map);
   }
 
   document.getElementById("try").disabled = false;
@@ -172,6 +224,10 @@ function tryAnswer() {
   const km = distance / 1000;
 
   attemptsUsed++;
+
+  // Retour visuel immédiat : vert si proche, orange si moyen, rouge si loin.
+  const feedbackColor = km < 1 ? "#3ddc73" : km < 5 ? "#f4b942" : "#e5484d";
+  if (playerMarker) playerMarker.setStyle({ fillColor: feedbackColor });
 
   if (attemptsUsed < MAX_ATTEMPTS) {
     // Première tentative ratée : on donne la distance et on laisse retenter.
@@ -192,6 +248,12 @@ function tryAnswer() {
 function finishRound(score, km, timeout) {
   finished = true;
   totalScore += score;
+  roundScores.push({
+    round: currentRound + 1,
+    city: treasures[currentRound].city,
+    place: treasures[currentRound].place,
+    score: score
+  });
 
   const treasure = treasures[currentRound];
 
@@ -245,10 +307,28 @@ function showFinalScreen() {
 
   document.getElementById("next-round").classList.add("hidden");
   const content = document.getElementById("result-content");
+
+  const breakdown = roundScores
+    .map(r => `<div class="round-line"><span>Manche ${r.round} — ${r.city}</span><span>${r.score.toLocaleString("fr-FR")} pts</span></div>`)
+    .join("");
+
+  let bestScoreHtml = "";
+  try {
+    const bestKey = "treasureHuntBestScore";
+    const previousBest = parseInt(localStorage.getItem(bestKey) || "0", 10);
+    const isNewBest = totalScore > previousBest;
+    const bestScore = isNewBest ? totalScore : previousBest;
+    if (isNewBest) localStorage.setItem(bestKey, String(totalScore));
+    bestScoreHtml = `<p class="best-score">${isNewBest ? "🎉 Nouveau record" : "Record"} : ${bestScore.toLocaleString("fr-FR")} pts</p>`;
+  } catch (e) {
+    // localStorage indisponible (navigation privée, etc.) : on ignore silencieusement.
+  }
+
   content.innerHTML =
     `<h2>🎉 Partie terminée !</h2>` +
     `<div class="score">${totalScore.toLocaleString("fr-FR")} pts</div>` +
-    `<p>Sur ${TOTAL_ROUNDS} manches jouées.</p>` +
+    bestScoreHtml +
+    `<div class="round-breakdown">${breakdown}</div>` +
     `<button id="restart" class="restart-btn">🔄 Rejouer</button>`;
 
   document.getElementById("restart").addEventListener("click", () => {
