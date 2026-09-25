@@ -15,15 +15,19 @@
 
   <section class="top">
     <div>
-      <div class="label">INDICE <span id="clue-number">1</span>/3</div>
+      <div class="label">MANCHE <span id="round-number">1</span>/5 — INDICE <span id="clue-number">1</span>/3</div>
       <div id="clue">Cette ville est l'ancienne capitale du Poitou.</div>
+      <div id="attempt-info"></div>
     </div>
-    <button id="try" disabled>📍 JE TENTE !</button>
+    <button id="try" disabled>📍 JE TENTE (1/2)</button>
   </section>
 
   <div id="map"></div>
 
-  <section id="result" class="hidden"></section>
+  <section id="result" class="hidden">
+    <div id="result-content"></div>
+    <button id="next-round" class="hidden">▶ Manche suivante</button>
+  </section>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/app.js"></script>
