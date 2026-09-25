@@ -645,7 +645,16 @@ function start() {
   // Important : force Leaflet à recalculer la taille de la carte.
   setTimeout(() => map.invalidateSize(), 100);
 
-  startRound();
+  // Mélange toute la liste des trésors au début de la partie
+roundTreasureIndexes = treasures.map((_, index) => index);
+
+for (let i = roundTreasureIndexes.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [roundTreasureIndexes[i], roundTreasureIndexes[j]] =
+    [roundTreasureIndexes[j], roundTreasureIndexes[i]];
+}
+
+startRound();
 }
 
 function startRound() {
@@ -663,7 +672,7 @@ function startRound() {
   document.getElementById("attempt-info").textContent = "";
   document.getElementById("round-number").textContent = currentRound + 1;
   document.getElementById("clue-number").textContent = "1";
-  document.getElementById("clue").textContent = treasures[currentRound].clues[0];
+  document.getElementById("clue").textContent = currentTreasure.clues[0];
   document.getElementById("clue-timer-bar").classList.remove("hidden");
   document.getElementById("clue-timer-fill").style.width = "0%";
 
@@ -692,7 +701,7 @@ function tick() {
 }
 
 function updateClueByTime() {
-  const treasure = treasures[currentRound];
+  const treasure = currentTreasure;
   const nextIndex = Math.min(
     Math.floor(seconds / CLUE_INTERVAL),
     treasure.clues.length - 1
@@ -730,7 +739,7 @@ function playClueBeep() {
 }
 
 function updateClueProgressBar() {
-  const treasure = treasures[currentRound];
+  const treasure = currentTreasure;
   const bar = document.getElementById("clue-timer-bar");
   const fill = document.getElementById("clue-timer-fill");
   const isLastClue = shownClueIndex >= treasure.clues.length - 1;
@@ -778,7 +787,7 @@ function onMapClick(e) {
 function tryAnswer() {
   if (!playerPosition || finished) return;
 
-  const treasure = treasures[currentRound];
+  const treasure = currentTreasure;
   const distance = map.distance(playerPosition, L.latLng(treasure.lat, treasure.lng));
   const km = distance / 1000;
 
@@ -809,12 +818,12 @@ function finishRound(score, km, timeout) {
   totalScore += score;
   roundScores.push({
     round: currentRound + 1,
-    city: treasures[currentRound].city,
-    place: treasures[currentRound].place,
+    city: currentTreasure.city,
+    place: currentTreasure.place,
     score: score
   });
 
-  const treasure = treasures[currentRound];
+  const treasure = currentTreasure;
 
   if (targetMarker) targetMarker.remove();
   targetMarker = L.circleMarker([treasure.lat, treasure.lng], {
