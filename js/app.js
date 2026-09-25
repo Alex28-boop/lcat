@@ -1,4 +1,4 @@
-const ROUND_DURATION = 180; // secondes par manche
+const ROUND_DURATION = 90; // secondes par manche (1min30)
 const CLUE_INTERVAL = 30;   // secondes entre chaque indice
 const MAX_ATTEMPTS = 2;
 const TOTAL_ROUNDS = 5;
@@ -183,11 +183,8 @@ function tryAnswer() {
     tryBtn.disabled = true; // attend un nouveau clic sur la carte
   } else {
     // Dernière tentative : elle est définitive et sert au calcul du score.
-    const remaining = Math.max(0, ROUND_DURATION - seconds);
-    const score = Math.max(
-      0,
-      Math.round(10000 * Math.exp(-km / 2.2) + remaining * 5)
-    );
+    // 10000 pts si on est pile au bon endroit, puis -500 pts par km d'éloignement.
+    const score = Math.max(0, Math.round(10000 - 500 * km));
     finishRound(score, km, false);
   }
 }
