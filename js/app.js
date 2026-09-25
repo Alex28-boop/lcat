@@ -642,20 +642,25 @@ function start() {
   document.getElementById("try").addEventListener("click", tryAnswer);
   document.getElementById("next-round").addEventListener("click", nextRound);
 
-  // Important : force Leaflet à recalculer la taille de la carte.
+  // Force Leaflet à recalculer la taille de la carte.
   setTimeout(() => map.invalidateSize(), 100);
 
   // Mélange toute la liste des trésors au début de la partie
-roundTreasureIndexes = treasures.map((_, index) => index);
+  roundTreasureIndexes = treasures.map((_, index) => index);
 
-for (let i = roundTreasureIndexes.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [roundTreasureIndexes[i], roundTreasureIndexes[j]] =
-    [roundTreasureIndexes[j], roundTreasureIndexes[i]];
+  for (let i = roundTreasureIndexes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [roundTreasureIndexes[i], roundTreasureIndexes[j]] =
+      [roundTreasureIndexes[j], roundTreasureIndexes[i]];
+  }
+
+  // Première manche
+  currentRound = 0;
+
+  startRound();
 }
 
-startRound();
-}
 
 function startRound() {
   finished = false;
@@ -664,26 +669,50 @@ function startRound() {
   shownClueIndex = 0;
   playerPosition = null;
 
-  if (playerMarker) { playerMarker.remove(); playerMarker = null; }
-  if (targetMarker) { targetMarker.remove(); targetMarker = null; }
+  // ⭐ Choisit le trésor correspondant à cette manche
+  const treasureIndex = roundTreasureIndexes[currentRound];
+  currentTreasure = treasures[treasureIndex];
+
+  if (playerMarker) {
+    playerMarker.remove();
+    playerMarker = null;
+  }
+
+  if (targetMarker) {
+    targetMarker.remove();
+    targetMarker = null;
+  }
 
   document.getElementById("result").classList.add("hidden");
   document.getElementById("next-round").classList.add("hidden");
+
   document.getElementById("attempt-info").textContent = "";
-  document.getElementById("round-number").textContent = currentRound + 1;
+
+  document.getElementById("round-number").textContent =
+    currentRound + 1;
+
   document.getElementById("clue-number").textContent = "1";
-  document.getElementById("clue").textContent = currentTreasure.clues[0];
+
+  document.getElementById("clue").textContent =
+    currentTreasure.clues[0];
+
   document.getElementById("clue-timer-bar").classList.remove("hidden");
+
   document.getElementById("clue-timer-fill").style.width = "0%";
 
   const tryBtn = document.getElementById("try");
+
   tryBtn.disabled = true;
-  tryBtn.textContent = `📍 JE TENTE (1/${MAX_ATTEMPTS})`;
+
+  tryBtn.textContent =
+    `📍 JE TENTE (1/${MAX_ATTEMPTS})`;
 
   map.setView([46.6, 2.5], 6);
 
   updateTimer();
+
   clearInterval(timerInterval);
+
   timerInterval = setInterval(tick, 1000);
 }
 
