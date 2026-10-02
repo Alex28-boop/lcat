@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>La Grande Carte au Trésor</title>
+  <title>Carte au Trésor</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div id="mode-select" class="overlay">
+    <div class="overlay-box">
+      <h2>🗺️ Carte au Trésor</h2>
+      <p>Choisis ton mode de jeu</p>
+      <button id="mode-classic" class="mode-btn">🎲 Partie classique<br><span>5 manches aléatoires parmi 100 lieux</span></button>
+      <button id="mode-daily" class="mode-btn">📅 Défi du jour<br><span>3 manches, les mêmes pour tous aujourd'hui</span></button>
+    </div>
+  </div>
+
   <header>
-    <h1>La Grande Carte au Trésor de Julos et LénaCat</h1>
+    <h1>🗺️ Carte au Trésor</h1>
     <div id="timer">01:30</div>
   </header>
 
   <section class="top">
     <div>
-      <div class="label">MANCHE <span id="round-number">1</span>/5 — INDICE <span id="clue-number">1</span>/3</div>
+      <div class="label">MANCHE <span id="round-number">1</span>/<span id="total-rounds">5</span> — INDICE <span id="clue-number">1</span>/3</div>
       <div id="clue">Cette ville est l'ancienne capitale du Poitou.</div>
       <div id="clue-timer-bar"><div id="clue-timer-fill"></div></div>
       <div id="attempt-info"></div>
     </div>
-    <button id="try" disabled>📍GUESS (1/2)</button>
+    <button id="try" disabled>📍 JE TENTE (1/2)</button>
   </section>
 
   <div id="map"></div>
@@ -31,6 +40,7 @@
   </section>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/treasure-bank-100.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
